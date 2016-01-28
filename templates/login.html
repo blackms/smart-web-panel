@@ -6,40 +6,55 @@
     <link rel=stylesheet href="{{ url_for('static', filename = "css/bootstrap.min.css") }}"/>
     <link rel=stylesheet href="{{ url_for('static', filename = "css/sb-admin-2.css") }}"/>
     <link rel=stylesheet href="{{ url_for('static', filename = "css/metisMenu.min.css") }}"/>
+    <script src="{{ url_for('static', filename = "js/jquery.js") }}"></script>
     <script src="{{ url_for('static', filename = "js/bootstrap.min.js") }}"></script>
     <script src="{{ url_for('static', filename = "js/sb-admin-2.js") }}"></script>
     <script src="{{ url_for('static', filename = "js/metisMenu.min.js") }}"></script>
-    <script src="{{ url_for('static', filename = "js/jquery.min.js") }}"></script>
 </head>
 <body>
 <div class="container">
-        <div class="row">
-            <div class="col-md-4 col-md-offset-4">
-                <div class="login-panel panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Please Sign In</h3>
-                    </div>
-                    <div class="panel-body">
-                        <form role="form">
-                            <fieldset>
-                                <div class="form-group">
-                                    <input class="form-control" placeholder="aru" name="aru" type="text" autofocus>
-                                </div>
-                                <div class="form-group">
-                                    <input class="form-control" placeholder="Password" name="password" type="password" value="">
-                                </div>
-                                <div class="checkbox">
-                                    <label>
-                                        <input name="remember" type="checkbox" value="Remember Me">Remember Me
-                                    </label>
-                                </div>
-                                <a href="/main" class="btn btn-lg btn-success btn-block">Login</a>
-                            </fieldset>
-                        </form>
-                    </div>
+    <div class="row">
+        <div class="col-md-4 col-md-offset-4">
+            <div class="login-panel panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Please Sign In</h3>
+                </div>
+                <div class="panel-body">
+                    <form role="form">
+                        <fieldset>
+                            <div class="form-group">
+                                <input class="form-control" placeholder="aru" name="aru" type="text" autofocus>
+                            </div>
+                            <div class="form-group">
+                                <input class="form-control" placeholder="Password" name="password" type="password"
+                                       value="">
+                            </div>
+                            <div class="checkbox">
+                                <label>
+                                    <input name="remember" type="checkbox" value="Remember Me">Remember Me
+                                </label>
+                            </div>
+                            <a href="#" class="btn btn-lg btn-success btn-block" id="login" name="login">Login</a>
+                        </fieldset>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+</div>
+<script type="text/javascript">
+    $("#login").click(function (event) {
+        var user = $('input[name=aru]').val();
+        var pwd = $('input[name=password]').val();
+        $.post(
+                'login',
+                {username: user, password: pwd},
+                function (data) {
+                    console.log(data);
+                }
+        );
+        console.log('ciao');
+    });
+</script>
 </body>
 </html>
