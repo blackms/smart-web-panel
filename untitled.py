@@ -1,12 +1,22 @@
-from flask import Flask, render_template, Response, request, redirect, url_for
+from flask import Flask, render_template, Response, request, redirect, url_for, session
 from ArubaCloud.PyArubaAPI import CloudInterface
 from ArubaCloud.base.Errors import RequestFailed
 from ArubaCloud.objects.VmTypes import Smart, Pro
 from ArubaCloud.objects import SmartVmCreator
+from session_manager import RedisSessionInterface
 
+import threading
 import json
 
 app = Flask(__name__)
+app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
+
+
+def run_in_thread(fn):
+    def run(*k, **kw):
+        t = threading.Thread(target=fn, args=k, kwargs=kw)
+        t.start()
+    return run
 
 
 @app.route('/')
@@ -16,14 +26,13 @@ def login():
 
 @app.route('/main')
 def main():
-    return render_template("main.html", dc=request.cookies.get('dc'))
+    return render_template("main.html", dc=session['dc'])
 
 
 @app.route('/getservers', methods=['GET'])
 def getservers():
-    data = json.loads(request.cookies.get('auth'))
-    username = data['username'].encode('ascii', 'ignore')
-    password = data['password'].encode('ascii', 'ignore')
+    username = session['username']
+    password = session['password']
     if request.args.get('dc') is not None:
         dc = request.args.get('dc')
     else:
@@ -65,29 +74,39 @@ def getservers():
     return Response(response=json.dumps(json_data), status=200, mimetype='application/json')
 
 
+@run_in_thread
+def execute_action(a, d):
+    a(server_id=d)
+
+
+@run_in_thread
+def load_data_task():
+    for dc in xrange(1, 6):
+        ci = CloudInterface(session['dc'])
+        ci.login(username=session['username'], password=session['password'], load=False)
+
+
 @app.route('/action', methods=['POST'])
 def action():
     data = request.form
-    auth_data = json.loads(request.cookies.get('auth'))
-    username = auth_data['username'].encode('ascii', 'ignore')
-    password = auth_data['password'].encode('ascii', 'ignore')
+    username = session['username']
+    password = session['password']
     ci = CloudInterface(data['dc'])
     ci.login(username=username, password=password, load=False)
     if data['action'] == 'start':
-        ci.poweron_server(server_id=data['vm_id'])
+        execute_action(ci.poweron_server, data['vm_id'])
     elif data['action'] == 'stop':
-        ci.poweroff_server(server_id=data['vm_id'])
+        execute_action(ci.poweroff_server, data['vm_id'])
     elif data['action'] == 'destroy':
-        ci.delete_vm(server_id=data['vm_id'])
+        execute_action(ci.delete_vm, data['vm_id'])
     return Response(response=json.dumps({'data': 'OK'}), status=200, mimetype='application/json')
 
 
 @app.route('/create_smart', methods=['POST'])
 def create_smart():
     data = request.form
-    auth_data = json.loads(request.cookies.get('auth'))
-    username = auth_data['username'].encode('ascii', 'ignore')
-    password = auth_data['password'].encode('ascii', 'ignore')
+    username = session['username']
+    password = session['password']
     ci = CloudInterface(data['dc'])
     ci.login(username=username, password=password, load=False)
     c = SmartVmCreator(name=data['server_name'],
@@ -104,6 +123,9 @@ def check_login():
     data = request.form
     username = data['aru'].encode('ascii', 'ignore')
     password = data['password'].encode('ascii', 'ignore')
+    session['username'] = username
+    session['password'] = password
+    session['dc'] = 1
     ci = CloudInterface(1)
     try:
         ci.login(username=username, password=password, load=False)
@@ -116,8 +138,6 @@ def check_login():
     }
     redirect_to_main = redirect(url_for('main'))
     response = app.make_response(redirect_to_main)
-    response.set_cookie('auth', value=json.dumps(auth))
-    response.set_cookie('dc', value="1")
     return response
 
 
