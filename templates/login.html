@@ -20,7 +20,7 @@
                     <h3 class="panel-title">Please Sign In</h3>
                 </div>
                 <div class="panel-body">
-                    <form role="form">
+                    <form role="form" action="/login", method="POST">
                         <fieldset>
                             <div class="form-group">
                                 <input class="form-control" placeholder="aru" name="aru" type="text" autofocus>
@@ -34,7 +34,7 @@
                                     <input name="remember" type="checkbox" value="Remember Me">Remember Me
                                 </label>
                             </div>
-                            <a href="#" class="btn btn-lg btn-success btn-block" id="login" name="login">Login</a>
+                            <input class="btn btn-lg btn-success btn-block" id="login" name="login" type="submit" value="Login">
                         </fieldset>
                     </form>
                 </div>
@@ -42,19 +42,5 @@
         </div>
     </div>
 </div>
-<script type="text/javascript">
-    $("#login").click(function (event) {
-        var user = $('input[name=aru]').val();
-        var pwd = $('input[name=password]').val();
-        $.post(
-                'login',
-                {username: user, password: pwd},
-                function (data) {
-                    console.log(data);
-                }
-        );
-        console.log('ciao');
-    });
-</script>
 </body>
 </html>
